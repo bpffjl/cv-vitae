@@ -48,86 +48,12 @@ edu %>%
   detailed_entries(Degree, Year, Institution, Where, Why)
 ```
 
-# COVID-19 response activities
+# Experience
 
 ```{r}
 job %>% 
   filter(presentation == 0) %>% 
   filter(other_honors == 0) %>% 
-  filter(covid == 1) %>% 
-  filter(primary == 'covid') %>% 
-  arrange(desc(year_start),
-          job,
-          position) %>% 
-  mutate(when = 
-           case_when(year_end == 'NULL' ~ glue::glue("{year_start}"),
-                     TRUE ~ glue::glue("{year_start} - {year_end}")) 
-           ) %>% 
-  detailed_entries(
-    what = position,
-    when = when,
-    with = job,
-    where = Location,
-    why = activity
-  )
-```
-
-# Research and data experience
-
-```{r, collapse=TRUE}
-job %>% 
-  filter(presentation == 0) %>% 
-  filter(other_honors == 0) %>% 
-  filter(research == 1) %>% 
-  filter(primary == 'research') %>% 
-  arrange(desc(year_start),
-          job,
-          position) %>% 
-  mutate(when = 
-           case_when(year_end == 'NULL' ~ glue::glue("{year_start}"),
-                     TRUE ~ glue::glue("{year_start} - {year_end}")) 
-           ) %>% 
-  detailed_entries(
-    what = position,
-    when = when,
-    with = job,
-    where = Location,
-    why = activity
-  )
-```
-
-# Teaching experience
-
-```{r}
-job %>% 
-  filter(presentation == 0) %>% 
-  filter(other_honors == 0) %>% 
-  filter(teaching == 1) %>% 
-  filter(primary == 'teaching') %>% 
-  arrange(desc(year_start),
-          job,
-          position) %>% 
-  mutate(when = 
-           case_when(year_end == 'NULL' ~ glue::glue("{year_start}"),
-                     TRUE ~ glue::glue("{year_start} - {year_end}")) 
-           ) %>% 
-  detailed_entries(
-    what = position,
-    when = when,
-    with = job,
-    where = Location,
-    why = activity
-  )
-```
-
-# Mangement Experience
-
-```{r}
-job %>% 
-  filter(presentation == 0) %>% 
-  filter(other_honors == 0) %>% 
-  filter(management == 1) %>% 
-  filter(primary == 'management') %>% 
   arrange(desc(year_start),
           job,
           position) %>% 
