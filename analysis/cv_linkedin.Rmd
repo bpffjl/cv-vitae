@@ -1,0 +1,205 @@
+---
+name: Ben
+surname: Jaques-Leslie
+position: "Agency Policy Specialist"
+address: "3415 39th Ave South, Minneapolis, MN 55406"
+phone: +1 919 928 3650
+# www: benjaquesleslie.com
+email: "benjaminjaques@gmail.com"
+twitter: benjaminjaques
+github: bpffjl
+linkedin: benjaques
+date: "`r format(Sys.time(), '%B %Y')`"
+headcolor: 220142
+docname: "Résumé"
+output: vitae::awesomecv #for html markdowncv
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+library(vitae)
+library(googlesheets4)
+library(tidyverse)
+
+edu <- read_sheet(
+  "https://docs.google.com/spreadsheets/d/1q_xOb6RizwdmZ0qgTWpW-PFmfX_qXJ65kpdDH5pnxP8/edit?usp=sharing") %>% 
+  arrange(desc(Year))
+
+job <- read_sheet(
+  "https://docs.google.com/spreadsheets/d/1unv9PrAeBjS2wYR7IMPw2fjf_tqER5cROWqlvuzkun8/edit?usp=sharing")
+
+other_honors <- read_sheet(
+  "https://docs.google.com/spreadsheets/d/1owCp0ptfzdbI6puUGuNjY-2B-51nNz1gDZQFxFyr2bQ/edit?usp=sharing")
+
+prez <- read_sheet(
+  'https://docs.google.com/spreadsheets/d/18ROsma6hfidvRyC3cMCGiCVHeklNchqySq2ja7zWSKQ/edit?usp=sharing'
+)
+
+other_activites <- read_sheet(
+  'https://docs.google.com/spreadsheets/d/1mSqq8kenrECK86SG_skypCx477AEE2J5_FewsMwBifE/edit?usp=sharing'
+)
+
+```
+
+# Education
+
+```{r}
+edu %>% 
+  detailed_entries(Degree, Year, Institution, Where, Why)
+```
+
+# COVID-19 response activities
+
+```{r}
+job %>% 
+  filter(presentation == 0) %>% 
+  filter(other_honors == 0) %>% 
+  filter(covid == 1) %>% 
+  filter(primary == 'covid') %>% 
+  arrange(desc(year_start),
+          job,
+          position) %>% 
+  mutate(when = 
+           case_when(year_end == 'NULL' ~ glue::glue("{year_start}"),
+                     TRUE ~ glue::glue("{year_start} - {year_end}")) 
+           ) %>% 
+  detailed_entries(
+    what = position,
+    when = when,
+    with = job,
+    where = Location,
+    why = activity
+  )
+```
+
+# Research and data experience
+
+```{r, collapse=TRUE}
+job %>% 
+  filter(presentation == 0) %>% 
+  filter(other_honors == 0) %>% 
+  filter(research == 1) %>% 
+  filter(primary == 'research') %>% 
+  arrange(desc(year_start),
+          job,
+          position) %>% 
+  mutate(when = 
+           case_when(year_end == 'NULL' ~ glue::glue("{year_start}"),
+                     TRUE ~ glue::glue("{year_start} - {year_end}")) 
+           ) %>% 
+  detailed_entries(
+    what = position,
+    when = when,
+    with = job,
+    where = Location,
+    why = activity
+  )
+```
+
+# Teaching experience
+
+```{r}
+job %>% 
+  filter(presentation == 0) %>% 
+  filter(other_honors == 0) %>% 
+  filter(teaching == 1) %>% 
+  filter(primary == 'teaching') %>% 
+  arrange(desc(year_start),
+          job,
+          position) %>% 
+  mutate(when = 
+           case_when(year_end == 'NULL' ~ glue::glue("{year_start}"),
+                     TRUE ~ glue::glue("{year_start} - {year_end}")) 
+           ) %>% 
+  detailed_entries(
+    what = position,
+    when = when,
+    with = job,
+    where = Location,
+    why = activity
+  )
+```
+
+# Mangement Experience
+
+```{r}
+job %>% 
+  filter(presentation == 0) %>% 
+  filter(other_honors == 0) %>% 
+  filter(management == 1) %>% 
+  filter(primary == 'management') %>% 
+  arrange(desc(year_start),
+          job,
+          position) %>% 
+  mutate(when = 
+           case_when(year_end == 'NULL' ~ glue::glue("{year_start}"),
+                     TRUE ~ glue::glue("{year_start} - {year_end}")) 
+           ) %>% 
+  detailed_entries(
+    what = position,
+    when = when,
+    with = job,
+    where = Location,
+    why = activity
+  )
+```
+
+# Other activities
+
+```{r}
+other_activites %>% 
+  arrange(desc(year_start),
+          role,
+          institution) %>% 
+  mutate(when = 
+           case_when(year_end == 'NULL' ~ glue::glue("{year_start}"),
+                     year_end == 'NA' ~ glue::glue("{year_start}"),
+                     is.na(year_end) ~ glue::glue("{year_start}"),
+                     TRUE ~ glue::glue("{year_start} - {year_end}")) 
+           ) %>% 
+  detailed_entries(
+    what = role,
+    when = when,
+    with = institution,
+    where = location,
+    why = activity)
+```
+
+# Other honors
+
+```{r}
+other_honors %>% 
+  detailed_entries(honor, year, institution, location, activity)
+```
+
+# Selected Presentations
+
+```{r}
+prez %>% 
+  arrange(desc(year), event) %>% 
+  detailed_entries(event, year, institution, location, activity)
+```
+
+# Publications
+
+```{r}
+bib <- bibliography_entries(
+  here::here('data',
+             "my_publications.bib"
+             )
+)
+
+bib %>%
+  arrange(author$family, issued)
+```
+
+# Additional information
+
+ * **Computer Skills**: R, SQL, STATA, MS Office, Salesforce, SharePoint, Git (limited), ArcGIS (limited) Python (limited), Julia (limited)
+ * **Volunteer Activities**: Amnesty International, First Church Somerville, MIT SHASS, People’s Self-Help Housing, Lutheran Family Services, International Rescue Committee
+ * **Leadership**: Judge, Southeast Regional Barista Competition
+ * **International Experience**: Kenya, Morocco, Sierra Leone, China, India, South Korea, Thailand, Vietnam, Egypt, United Arab Emirates, Qatar, Brazil, Mexico, Canada, France, Italy, the Netherlands, Spain, Turkey, and UK
+
+
+
+
