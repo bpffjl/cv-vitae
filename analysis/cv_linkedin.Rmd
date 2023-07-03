@@ -1,7 +1,7 @@
 ---
 name: Ben
 surname: Jaques-Leslie
-position: "Agency Policy Specialist"
+position: "Research Scientist"
 address: "3415 39th Ave South, Minneapolis, MN 55406"
 phone: +1 919 928 3650
 # www: benjaquesleslie.com
