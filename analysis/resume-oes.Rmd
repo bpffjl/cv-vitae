@@ -1,0 +1,84 @@
+---
+name: Ben
+surname: Jaques-Leslie
+position: "Research Scientist"
+address: "3415 39th Ave South, Minneapolis, MN 55406"
+phone: +1 919 928 3650
+# www: benjaquesleslie.com
+email: "benjaminjaques@gmail.com"
+twitter: benjaminjaques
+github: bpffjl
+linkedin: benjaques
+date: "`r format(Sys.time(), '%B %Y')`"
+headcolor: 220142
+docname: "Résumé"
+output: vitae::awesomecv #for html markdowncv
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+library(vitae)
+library(googlesheets4)
+library(tidyverse)
+
+edu <- read_sheet(
+  "https://docs.google.com/spreadsheets/d/1q_xOb6RizwdmZ0qgTWpW-PFmfX_qXJ65kpdDH5pnxP8/edit?usp=sharing") %>% 
+  arrange(desc(Year))
+
+job <- read_sheet(
+  "https://docs.google.com/spreadsheets/d/1unv9PrAeBjS2wYR7IMPw2fjf_tqER5cROWqlvuzkun8/edit?usp=sharing")
+
+other_honors <- read_sheet(
+  "https://docs.google.com/spreadsheets/d/1owCp0ptfzdbI6puUGuNjY-2B-51nNz1gDZQFxFyr2bQ/edit?usp=sharing")
+
+prez <- read_sheet(
+  'https://docs.google.com/spreadsheets/d/18ROsma6hfidvRyC3cMCGiCVHeklNchqySq2ja7zWSKQ/edit?usp=sharing'
+)
+
+other_activites <- read_sheet(
+  'https://docs.google.com/spreadsheets/d/1mSqq8kenrECK86SG_skypCx477AEE2J5_FewsMwBifE/edit?usp=sharing'
+)
+
+```
+
+# Education
+
+```{r}
+edu %>% 
+  detailed_entries(Degree, Year, Institution, Where, Why) %>%
+  filter(str_detect(where,"USA"))
+```
+
+# Experience
+
+```{r}
+job %>% 
+  filter(year_start > 2009) %>%
+  filter(!str_detect(job,"San Diego")) %>%
+  filter(presentation == 0) %>% 
+  filter(other_honors == 0) %>% 
+  arrange(desc(year_start),
+          job,
+          position) %>% 
+  mutate(when = 
+           case_when(year_end == 'NULL' ~ glue::glue("{year_start}"),
+                     TRUE ~ glue::glue("{year_start} - {year_end}")) 
+           ) %>% 
+  detailed_entries(
+    what = position,
+    when = when,
+    with = job,
+    where = Location,
+    why = activity
+  )
+```
+
+# Additional information
+
+ * **Computer Skills**: R, SQL, Tableau, STATA, MS Office, Salesforce, SharePoint, Git (limited), ArcGIS (limited) Python (limited), Julia (limited)
+ * **Volunteer Activities**: Amnesty International, First Church Somerville, MIT SHASS, People’s Self-Help Housing, Lutheran Family Services, International Rescue Committee
+ * **International Experience**: Kenya, Morocco, Sierra Leone, China, India, South Korea, Thailand, Vietnam, Egypt, United Arab Emirates, Qatar, Brazil, Mexico, Canada, France, Italy, the Netherlands, Spain, Turkey, and UK
+
+
+
+
