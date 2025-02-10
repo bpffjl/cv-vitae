@@ -20,25 +20,24 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 library(vitae)
 library(googlesheets4)
 library(tidyverse)
+source(here::here("functions","load_education.R"))
+source(here::here("functions","load_jobs.R"))
+source(here::here("functions","load_other_honors.R"))
+source(here::here("functions","load_other_activities.R"))
+source(here::here("functions","load_presentations.R"))
+```
 
 
-edu <- read_sheet(
-  "https://docs.google.com/spreadsheets/d/1q_xOb6RizwdmZ0qgTWpW-PFmfX_qXJ65kpdDH5pnxP8/edit?usp=sharing") %>% 
-  arrange(desc(Year))
+```{r laod, include=FALSE}
+edu <- load_education() 
 
-job <- read_sheet(
-  "https://docs.google.com/spreadsheets/d/1unv9PrAeBjS2wYR7IMPw2fjf_tqER5cROWqlvuzkun8/edit?usp=sharing")
+job <- load_jobs()
 
-other_honors <- read_sheet(
-  "https://docs.google.com/spreadsheets/d/1owCp0ptfzdbI6puUGuNjY-2B-51nNz1gDZQFxFyr2bQ/edit?usp=sharing")
+other_honors <- load_other_honors()
 
-prez <- read_sheet(
-  'https://docs.google.com/spreadsheets/d/18ROsma6hfidvRyC3cMCGiCVHeklNchqySq2ja7zWSKQ/edit?usp=sharing'
-)
+prez <- load_presentations()
 
-other_activites <- read_sheet(
-  'https://docs.google.com/spreadsheets/d/1mSqq8kenrECK86SG_skypCx477AEE2J5_FewsMwBifE/edit?usp=sharing'
-)
+other_activites <- load_other_activities()
 
 ```
 
@@ -85,7 +84,7 @@ job %>%
 
 # Additional information
 
- * **Computer Skills**: R, SQL, Tableau, STATA, MS Office, Salesforce, SharePoint, Git, ArcGIS (limited) Python (limited), Julia (limited)
+ * **Computer Skills**: R, Github, AzureDevops, SQL, STATA, MS Office, Salesforce, SharePoint, ArcGIS (limited) Python (limited), Julia (limited)
  * **International Experience**: Kenya, Morocco, Sierra Leone, China, India, South Korea, Thailand, Vietnam, Egypt, United Arab Emirates, Qatar, Brazil, Mexico, Canada, France, Italy, the Netherlands, Spain, Turkey, and UK
 
 
