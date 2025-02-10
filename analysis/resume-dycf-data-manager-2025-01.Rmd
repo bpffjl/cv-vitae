@@ -1,0 +1,121 @@
+---
+name: Ben
+surname: Jaques-Leslie
+position: "Research and Data Scientist"
+address: "3415 39th Ave South, Minneapolis, MN 55406"
+phone: +1 919 928 3650
+# www: benjaquesleslie.com
+email: "benjaminjaques@gmail.com"
+twitter: benjaminjaques
+github: bpffjl
+linkedin: benjaques
+date: "`r format(Sys.time(), '%B %Y')`"
+headcolor: 220142
+docname: "Résumé"
+output: vitae::awesomecv #for html markdowncv
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+library(vitae)
+library(googlesheets4)
+library(tidyverse)
+source(here::here("functions","load_education.R"))
+source(here::here("functions","load_jobs.R"))
+source(here::here("functions","load_other_honors.R"))
+source(here::here("functions","load_other_activities.R"))
+source(here::here("functions","load_presentations.R"))
+```
+
+
+```{r laod, include=FALSE}
+edu <- load_education() 
+
+job <- load_jobs()
+
+other_honors <- load_other_honors()
+
+prez <- load_presentations()
+
+other_activites <- load_other_activities()
+
+```
+
+# Education
+
+```{r}
+edu %>% 
+  detailed_entries(Degree, Year, Institution, Where, Why) %>%
+  filter(str_detect(where,"USA") | str_detect(where,"Virtual"))
+```
+
+# Selected experience
+
+```{r}
+job %>% 
+  filter(year_start > 2015) %>%
+  filter(!str_detect(job,"San Diego")) %>%
+  filter(presentation == 0) %>% 
+  filter(other_honors == 0) %>% 
+  arrange(desc(year_start),
+          job,
+          position) %>% 
+  mutate(when = 
+           case_when(year_end == 'NULL' ~ glue::glue("{year_start}"),
+                     TRUE ~ glue::glue("{year_start} - {year_end}")) 
+           ) %>% 
+  mutate(
+    position = case_when(
+      position == "Data Scientist" ~ glue::glue("{position} (80% time, concurrent with Research Scientist)"),
+      position == "Research Scientist" ~ glue::glue("{position} (Full-time, then 20% time when concurrent with Data Scientist)"),
+      TRUE ~
+      glue::glue("{position} (Full-time)"),
+    ),
+    position = as.character(position)
+  ) %>% 
+  detailed_entries(
+    what = position,
+    when = when,
+    with = job,
+    where = Location,
+    why = activity
+  )
+```
+
+# Other activities
+
+```{r}
+other_activites %>% 
+  arrange(desc(year_start),
+          role,
+          institution) %>% 
+  filter(year_start > 2015) %>% 
+  mutate(when = 
+           case_when(year_end == 'NULL' ~ glue::glue("{year_start}"),
+                     year_end == 'NA' ~ glue::glue("{year_start}"),
+                     is.na(year_end) ~ glue::glue("{year_start}"),
+                     TRUE ~ glue::glue("{year_start} - {year_end}")) 
+           ) %>% 
+  detailed_entries(
+    what = role,
+    when = when,
+    with = institution,
+    where = location,
+    why = activity)
+```
+
+# Other honors
+
+```{r}
+other_honors %>% 
+  detailed_entries(honor, year, institution, location, activity)
+```
+
+# Additional information
+
+ * **Computer Skills**: R, Github, AzureDevops, SQL, STATA, MS Office, Salesforce, SharePoint, ArcGIS (limited) Python (limited), Julia (limited)
+ * **International Experience**: Kenya, Morocco, Sierra Leone, China, India, South Korea, Thailand, Vietnam, Egypt, United Arab Emirates, Qatar, Brazil, Mexico, Canada, France, Italy, the Netherlands, Spain, Turkey, and UK
+
+
+
+
