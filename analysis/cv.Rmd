@@ -29,9 +29,13 @@ source(here::here("functions","load_presentations.R"))
 
 
 ```{r laod, include=FALSE}
-edu <- load_education() 
+edu <- load_education(
+  "https://docs.google.com/spreadsheets/d/1q_xOb6RizwdmZ0qgTWpW-PFmfX_qXJ65kpdDH5pnxP8/edit?usp=sharing"
+) 
 
-job <- load_jobs()
+job <- load_jobs(
+  "https://docs.google.com/spreadsheets/d/1unv9PrAeBjS2wYR7IMPw2fjf_tqER5cROWqlvuzkun8/edit?usp=sharing"
+)
 
 other_honors <- load_other_honors()
 
