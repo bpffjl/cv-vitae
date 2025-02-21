@@ -1,0 +1,120 @@
+---
+name: Ben
+surname: Jaques-Leslie
+position: "Program Evaluator and Data Scientist"
+address: "3415 39th Ave South, Minneapolis, MN 55406"
+phone: +1 919 928 3650
+# www: benjaquesleslie.com
+email: "benjaminjaques@gmail.com"
+twitter: benjaminjaques
+github: bpffjl
+linkedin: benjaques
+date: "`r format(Sys.time(), '%B %Y')`"
+headcolor: 220142
+docname: "Résumé"
+output: 
+  vitae::moderncv:
+    theme: "classic" #for html markdowncv
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+library(vitae)
+library(googlesheets4)
+library(tidyverse)
+source(here::here("functions","load_education.R"))
+source(here::here("functions","load_jobs.R"))
+source(here::here("functions","load_other_honors.R"))
+source(here::here("functions","load_other_activities.R"))
+source(here::here("functions","load_presentations.R"))
+```
+
+```{r laod, include=FALSE}
+edu <- load_education("https://docs.google.com/spreadsheets/d/1RTMD913BsPciE3sBMtClxqrGwwbqfmdv6uQbRdX6YvQ/edit?usp=sharing") 
+
+job <- load_jobs("https://docs.google.com/spreadsheets/d/1VEHa179hkCHgPIW5Fhvr6vMBQKvKkkGaTwkC47K04MU/edit?usp=sharing")
+
+other_honors <- load_other_honors()
+
+prez <- load_presentations()
+
+other_activites <- load_other_activities()
+
+```
+
+# PROFESSIONAL SUMMARY
+
+Experienced program evaluator and data scientist with 13+ years of
+expertise in evaluation, organizational learning, and data analysis.
+Proven track record in leading collaborative evaluation projects,
+facilitating learning across diverse teams, and implementing equitable
+evaluation practices. Strong background in both federal and nonprofit
+sectors with demonstrated success in building evaluation capacity and
+driving data-informed decision-making.
+
+# RELEVANT EXPERIENCE
+
+```{r, collapse=TRUE}
+job %>% 
+  # filter(presentation == 0) %>% 
+  # filter(other_honors == 0) %>% 
+  # filter(research == 1) %>% 
+  # filter(primary == 'research') %>% 
+  arrange(desc(year_start),
+          job,
+          position) %>% 
+  mutate(when = 
+           case_when(year_end == 'NULL' ~ glue::glue("{year_start}"),
+                     TRUE ~ glue::glue("{year_start} - {year_end}")) 
+           ) %>% 
+  detailed_entries(
+    what = position,
+    when = when,
+    with = job,
+    where = Location,
+    why = activity
+  )
+```
+
+# EDUCATION
+
+```{r}
+edu %>% 
+  detailed_entries(Degree, Year, Institution, Where, Why) %>% 
+  filter(when < 2020)
+```
+
+# SKILLS & EXPERTISE
+
+-   **Evaluation Methods**: Equitable evaluation practices,
+    mixed-methods evaluation, performance measurement
+-   **Facilitation**: Learning-focused facilitation, workshop design,
+    hybrid meeting management
+-   **Technical**: R, SQL, Github, Azure DevOps, Tableau, STATA
+-   **Project Management**: Agile methodologies, collaborative project
+    leadership
+-   **Communications**: Technical writing, data visualization,
+    stakeholder engagement
+
+# RELEVANT TRAINING
+
+```{r}
+edu %>% 
+  detailed_entries(Degree, Year, Institution, Where, Why) %>% 
+  filter(when >= 2020)
+```
+
+# PUBLICATIONS & PRESENTATIONS
+
+Selected recent works focused on evaluation and organizational learning:
+
+-    "The effects of remote designation on applications and selections
+    to federal government jobs" (2025)
+
+-    "Using Program Success Metrics and Organizational Change Principles
+    to Implement Responsive and Modernized TANF Programs" (2023)
+
+-    "Centering Racial Equity in TANF Data Use" (2022)
