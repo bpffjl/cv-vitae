@@ -1,0 +1,342 @@
+---
+format:
+  pdf:
+    documentclass: article
+    geometry:
+      - margin=0.75in
+    fontsize: 11pt
+    include-in-header:
+      text: |
+        \usepackage{enumitem}
+        \setlist[itemize]{leftmargin=*, nosep, itemsep=0pt, parsep=2pt}
+        \usepackage{titlesec}
+        \titleformat{\section}{\Large\bfseries}{}{0em}{}[\titlerule]
+        \titleformat{\subsection}{\large\bfseries}{}{0em}{}
+        \titlespacing{\section}{0pt}{12pt}{6pt}
+        \titlespacing{\subsection}{0pt}{8pt}{4pt}
+        \pagenumbering{gobble}
+---
+
+```{r}
+#| label: setup
+#| include: false
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, results = 'asis')
+library(googlesheets4)
+library(tidyverse)
+source(here::here("functions","load_education.R"))
+source(here::here("functions","load_jobs.R"))
+source(here::here("functions","load_other_honors.R"))
+source(here::here("functions","load_other_activities.R"))
+source(here::here("functions","load_presentations.R"))
+
+# Function to escape LaTeX special characters
+escape_latex <- function(x) {
+  x <- gsub("\\\\", "\\\\textbackslash{}", x)
+  x <- gsub("&", "\\\\&", x)
+  x <- gsub("%", "\\\\%", x)
+  x <- gsub("\\$", "\\\\$", x)
+  x <- gsub("#", "\\\\#", x)
+  x <- gsub("_", "\\\\_", x)
+  x <- gsub("\\{", "\\\\{", x)
+  x <- gsub("\\}", "\\\\}", x)
+  x <- gsub("~", "\\\\textasciitilde{}", x)
+  x <- gsub("\\^", "\\\\textasciicircum{}", x)
+  return(x)
+}
+```
+
+```{r}
+#| label: load
+#| include: false
+edu <- load_education(
+  "https://docs.google.com/spreadsheets/d/1q_xOb6RizwdmZ0qgTWpW-PFmfX_qXJ65kpdDH5pnxP8/edit?usp=sharing"
+) 
+
+job <- load_jobs(
+  "https://docs.google.com/spreadsheets/d/1unv9PrAeBjS2wYR7IMPw2fjf_tqER5cROWqlvuzkun8/edit?usp=sharing"
+)
+
+other_honors <- load_other_honors()
+
+prez <- load_presentations()
+
+other_activites <- load_other_activities()
+```
+
+\begin{center}
+{\LARGE \textbf{Ben Jaques-Leslie}}
+
+\vspace{2mm}
+
+Program Evaluator and Data Scientist
+
+\vspace{2mm}
+
+3420 39th Ave South, Minneapolis, MN 55406 | +1 919 928 3650
+
+\href{mailto:benjaminjaques@gmail.com}{benjaminjaques@gmail.com} | \href{https://github.com/bpffjl}{github.com/bpffjl} | \href{https://linkedin.com/in/benjaques}{linkedin.com/in/benjaques}
+\end{center}
+
+\vspace{4mm}
+
+# Education
+
+```{r}
+edu %>%
+  group_by(Degree, Institution, Where, Year) %>%
+  summarize(details = list(Why[!is.na(Why) & Why != "NA"]), .groups = 'drop') %>%
+  arrange(desc(Year)) %>%
+  mutate(across(c(Degree, Institution, Where), escape_latex)) %>%
+  rowwise() %>%
+  mutate(
+    has_details = length(details) > 0 && length(details[[1]]) > 0,
+    Why_escaped = if(has_details) {
+      paste(map_chr(details[[1]], escape_latex), collapse = '\n\n')
+    } else {
+      ""
+    },
+    output = paste(
+      paste0("\\subsection{", Degree, "}"),
+      paste0("\\textit{", Institution, "}, ", Where, " \\hfill ", Year),
+      if(Why_escaped != "") Why_escaped else "",
+      sep = if(Why_escaped != "") "\n\n" else ""
+    )
+  ) %>%
+  pull(output) %>%
+  cat(sep = "\n\n")
+```
+
+# Research and Data Experience
+
+```{r}
+job %>% 
+  filter(presentation == 0, other_honors == 0, research == 1, primary == 'research') %>% 
+  mutate(
+    is_consulting = str_detect(tolower(job), "consult"),
+    when = if_else(year_end == 'NULL', as.character(year_start), paste0(year_start, " - ", year_end))
+  ) %>%
+  group_by(position, job, Location, when, year_start, is_consulting) %>%
+  summarize(activities = list(activity[!is.na(activity) & activity != "NA"]), .groups = 'drop') %>%
+  arrange(desc(year_start), is_consulting, job, position) %>%
+  mutate(across(c(position, job, Location), escape_latex)) %>%
+  rowwise() %>%
+  mutate(
+    has_activities = length(activities) > 0 && length(unlist(activities)) > 0,
+    items = if(has_activities) {
+      escaped_activities <- map_chr(unlist(activities), escape_latex)
+      paste(paste0('\\item ', escaped_activities), collapse = '\n')
+    } else {
+      ""
+    }
+  ) %>%
+  filter(has_activities) %>%
+  mutate(
+    output = paste(
+      paste0("\\subsection{", position, "}"),
+      paste0("\\textit{", job, "}, ", Location, " \\hfill ", when),
+      "\\begin{itemize}",
+      items,
+      "\\end{itemize}",
+      sep = "\n\n"
+    )
+  ) %>%
+  pull(output) %>%
+  cat(sep = "\n\n")
+```
+
+# Teaching Experience
+
+```{r}
+job %>% 
+  filter(presentation == 0, other_honors == 0, teaching == 1, primary == 'teaching') %>% 
+  mutate(
+    is_consulting = str_detect(tolower(job), "consult"),
+    when = if_else(year_end == 'NULL', as.character(year_start), paste0(year_start, " - ", year_end))
+  ) %>%
+  group_by(position, job, Location, when, year_start, is_consulting) %>%
+  summarize(activities = list(activity[!is.na(activity) & activity != "NA"]), .groups = 'drop') %>%
+  arrange(desc(year_start), is_consulting, job, position) %>%
+  mutate(across(c(position, job, Location), escape_latex)) %>%
+  rowwise() %>%
+  mutate(
+    has_activities = length(activities) > 0 && length(unlist(activities)) > 0,
+    items = if(has_activities) {
+      escaped_activities <- map_chr(unlist(activities), escape_latex)
+      paste(paste0('\\item ', escaped_activities), collapse = '\n')
+    } else {
+      ""
+    }
+  ) %>%
+  filter(has_activities) %>%
+  mutate(
+    output = paste(
+      paste0("\\subsection{", position, "}"),
+      paste0("\\textit{", job, "}, ", Location, " \\hfill ", when),
+      "\\begin{itemize}",
+      items,
+      "\\end{itemize}",
+      sep = "\n\n"
+    )
+  ) %>%
+  pull(output) %>%
+  cat(sep = "\n\n")
+```
+
+# Management Experience
+
+```{r}
+job %>% 
+  filter(presentation == 0, other_honors == 0, management == 1, primary == 'management') %>% 
+  mutate(
+    is_consulting = str_detect(tolower(job), "consult"),
+    when = if_else(year_end == 'NULL', as.character(year_start), paste0(year_start, " - ", year_end))
+  ) %>%
+  group_by(position, job, Location, when, year_start, is_consulting) %>%
+  summarize(activities = list(activity[!is.na(activity) & activity != "NA"]), .groups = 'drop') %>%
+  arrange(desc(year_start), is_consulting, job, position) %>%
+  mutate(across(c(position, job, Location), escape_latex)) %>%
+  rowwise() %>%
+  mutate(
+    has_activities = length(activities) > 0 && length(unlist(activities)) > 0,
+    items = if(has_activities) {
+      escaped_activities <- map_chr(unlist(activities), escape_latex)
+      paste(paste0('\\item ', escaped_activities), collapse = '\n')
+    } else {
+      ""
+    }
+  ) %>%
+  filter(has_activities) %>%
+  mutate(
+    output = paste(
+      paste0("\\subsection{", position, "}"),
+      paste0("\\textit{", job, "}, ", Location, " \\hfill ", when),
+      "\\begin{itemize}",
+      items,
+      "\\end{itemize}",
+      sep = "\n\n"
+    )
+  ) %>%
+  pull(output) %>%
+  cat(sep = "\n\n")
+```
+
+# Other Activities
+
+```{r}
+other_activites %>% 
+  mutate(when = case_when(
+    year_end == 'NULL' | year_end == 'NA' | is.na(year_end) ~ as.character(year_start),
+    TRUE ~ paste0(year_start, " - ", year_end)
+  )) %>%
+  group_by(role, institution, location, when, year_start) %>%
+  summarize(activities = list(activity[!is.na(activity) & activity != "NA"]), .groups = 'drop') %>%
+  arrange(desc(year_start), role, institution) %>%
+  mutate(across(c(role, institution, location), escape_latex)) %>%
+  rowwise() %>%
+  mutate(
+    has_activities = length(activities) > 0 && length(unlist(activities)) > 0,
+    items = if(has_activities) {
+      escaped_activities <- map_chr(unlist(activities), escape_latex)
+      paste(paste0('\\item ', escaped_activities), collapse = '\n')
+    } else {
+      ""
+    }
+  ) %>%
+  filter(has_activities) %>%
+  mutate(
+    output = paste(
+      paste0("\\subsection{", role, "}"),
+      paste0("\\textit{", institution, "}, ", location, " \\hfill ", when),
+      "\\begin{itemize}",
+      items,
+      "\\end{itemize}",
+      sep = "\n\n"
+    )
+  ) %>%
+  pull(output) %>%
+  cat(sep = "\n\n")
+```
+
+# Other Honors
+
+```{r}
+other_honors %>%
+  group_by(honor, institution, location, year) %>%
+  summarize(activities = list(activity[!is.na(activity) & activity != "NA"]), .groups = 'drop') %>%
+  arrange(desc(year)) %>%
+  mutate(across(c(honor, institution, location), escape_latex)) %>%
+  rowwise() %>%
+  mutate(
+    has_activities = length(activities) > 0 && length(unlist(activities)) > 0,
+    items = if(has_activities) {
+      escaped_activities <- map_chr(unlist(activities), escape_latex)
+      paste(paste0('\\item ', escaped_activities), collapse = '\n')
+    } else {
+      ""
+    }
+  ) %>%
+  filter(has_activities) %>%
+  mutate(
+    output = paste(
+      paste0("\\subsection{", honor, "}"),
+      paste0("\\textit{", institution, "}, ", location, " \\hfill ", year),
+      "\\begin{itemize}",
+      items,
+      "\\end{itemize}",
+      sep = "\n\n"
+    )
+  ) %>%
+  pull(output) %>%
+  cat(sep = "\n\n")
+```
+
+# Selected Presentations
+
+```{r}
+prez %>% 
+  group_by(event, institution, location, year) %>%
+  summarize(activities = list(activity[!is.na(activity) & activity != "NA"]), .groups = 'drop') %>%
+  arrange(desc(year), event) %>%
+  mutate(across(c(event, institution, location), escape_latex)) %>%
+  rowwise() %>%
+  mutate(
+    has_activities = length(activities) > 0 && length(unlist(activities)) > 0,
+    items = if(has_activities) {
+      escaped_activities <- map_chr(unlist(activities), escape_latex)
+      paste(paste0('\\item ', escaped_activities), collapse = '\n')
+    } else {
+      ""
+    }
+  ) %>%
+  filter(has_activities) %>%
+  mutate(
+    output = paste(
+      paste0("\\subsection{", event, "}"),
+      paste0("\\textit{", institution, "}, ", location, " \\hfill ", year),
+      "\\begin{itemize}",
+      items,
+      "\\end{itemize}",
+      sep = "\n\n"
+    )
+  ) %>%
+  pull(output) %>%
+  cat(sep = "\n\n")
+```
+
+# Publications
+
+```{r}
+# This section will need adjustment based on your .bib file structure
+# For now, keeping simple text output
+cat("\\textit{See attached bibliography or contact for full publication list}")
+```
+
+# Additional Information
+
+**Computer Skills**: R, Github, AzureDevops, SQL, STATA, MS Office, Salesforce, SharePoint, ArcGIS (limited), Python (limited), Julia (limited)
+
+**Volunteer Activities**: Minneapolis Parks and Recreation, Saint Paul United Church of Christ, Amnesty International, First Church Somerville, MIT SHASS, People's Self-Help Housing, Lutheran Family Services, International Rescue Committee
+
+**Leadership**: Judge, Southeast Regional Barista Competition
+
+**International Experience**: Kenya, Morocco, Sierra Leone, China, India, South Korea, Thailand, Vietnam, Egypt, United Arab Emirates, Qatar, Brazil, Mexico, Canada, France, Italy, the Netherlands, Spain, Turkey, and UK
