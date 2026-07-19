@@ -72,7 +72,7 @@ Program Evaluator and Data Scientist
 
 \vspace{2mm}
 
-3420 39th Ave South, Minneapolis, MN 55406 | +1 919 928 3650
+Minneapolis, MN
 
 \href{mailto:benjaminjaques@gmail.com}{benjaminjaques@gmail.com} | \href{https://github.com/bpffjl}{github.com/bpffjl} | \href{https://linkedin.com/in/benjaques}{linkedin.com/in/benjaques}
 \end{center}
@@ -326,9 +326,88 @@ prez %>%
 # Publications
 
 ```{r}
-# This section will need adjustment based on your .bib file structure
-# For now, keeping simple text output
-cat("\\textit{See attached bibliography or contact for full publication list}")
+bib_text <- paste(readLines(here::here("data", "my_publications.bib"), warn = FALSE, encoding = "UTF-8"), collapse = "\n")
+
+extract_field <- function(entry_text, field) {
+  m <- regexpr(paste0("\\b", field, "\\s*=\\s*\\{"), entry_text, ignore.case = TRUE, perl = TRUE)
+  if (m[1] == -1) return(NA_character_)
+  chars <- strsplit(entry_text, "")[[1]]
+  open_pos <- m[1] + attr(m, "match.length") - 1L
+  depth <- 1L
+  i <- open_pos + 1L
+  n <- length(chars)
+  while (i <= n && depth > 0L) {
+    if (chars[i] == "{") depth <- depth + 1L
+    else if (chars[i] == "}") depth <- depth - 1L
+    if (depth > 0L) i <- i + 1L
+  }
+  value <- paste(chars[(open_pos + 1L):(i - 1L)], collapse = "")
+  trimws(gsub("[{}]", "", value))
+}
+
+format_authors <- function(raw) {
+  if (is.na(raw) || !nzchar(raw)) return("")
+  people <- trimws(strsplit(raw, "\\s+and\\s+")[[1]])
+  formatted <- vapply(people, function(p) {
+    if (grepl(",", p)) {
+      parts <- strsplit(p, ",")[[1]]
+      last <- trimws(parts[1])
+      first <- trimws(paste(parts[-1], collapse = ","))
+      if (nzchar(first)) paste(first, last) else last
+    } else {
+      p
+    }
+  }, character(1))
+  paste(formatted, collapse = ", ")
+}
+
+entry_chunks <- strsplit(bib_text, "(?=@[A-Za-z]+\\s*\\{)", perl = TRUE)[[1]]
+entry_chunks <- entry_chunks[grepl("^@", trimws(entry_chunks))]
+
+pubs <- map_dfr(entry_chunks, function(chunk) {
+  author_raw <- extract_field(chunk, "author")
+  editor_raw <- extract_field(chunk, "editor")
+  collaborator_raw <- extract_field(chunk, "collaborator")
+
+  authors <- if (!is.na(author_raw)) {
+    base <- format_authors(author_raw)
+    if (!is.na(editor_raw)) paste0(base, " (", format_authors(editor_raw), ", ed.)") else base
+  } else if (!is.na(editor_raw)) {
+    paste0(format_authors(editor_raw), " (ed.)")
+  } else if (!is.na(collaborator_raw)) {
+    paste0(format_authors(collaborator_raw), " (collab.)")
+  } else {
+    ""
+  }
+
+  org_raw <- extract_field(chunk, "institution")
+  if (is.na(org_raw)) org_raw <- extract_field(chunk, "publisher")
+  if (is.na(org_raw)) org_raw <- extract_field(chunk, "journal")
+
+  tibble(
+    title = extract_field(chunk, "title"),
+    year = suppressWarnings(as.integer(extract_field(chunk, "year"))),
+    authors = authors,
+    org = if (is.na(org_raw)) "" else org_raw,
+    url = extract_field(chunk, "url")
+  )
+})
+
+pubs %>%
+  arrange(desc(year)) %>%
+  mutate(
+    year_part = if_else(!is.na(year), paste0(" (", year, ")."), ""),
+    org_part = if_else(nzchar(org), paste0(" \\textit{", escape_latex(org), "}."), ""),
+    link_part = if_else(!is.na(url) & nzchar(url), paste0(" \\href{", url, "}{", url, "}"), ""),
+    item = paste0(
+      "\\item \\textbf{", escape_latex(title), "}", year_part,
+      " ", escape_latex(authors), ".", org_part, link_part
+    )
+  ) %>%
+  pull(item) %>%
+  paste(collapse = "\n") %>%
+  {paste0("\\begin{itemize}\n", ., "\n\\end{itemize}")} %>%
+  cat()
 ```
 
 # Additional Information
