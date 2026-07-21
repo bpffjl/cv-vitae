@@ -361,8 +361,9 @@ format_authors <- function(raw) {
   paste(formatted, collapse = ", ")
 }
 
-entry_chunks <- strsplit(bib_text, "(?=@[A-Za-z]+\\s*\\{)", perl = TRUE)[[1]]
-entry_chunks <- entry_chunks[grepl("^@", trimws(entry_chunks))]
+entry_starts <- gregexpr("@[A-Za-z]+\\s*\\{", bib_text, perl = TRUE)[[1]]
+entry_ends <- c(entry_starts[-1] - 1L, nchar(bib_text))
+entry_chunks <- substring(bib_text, entry_starts, entry_ends)
 
 pubs <- map_dfr(entry_chunks, function(chunk) {
   author_raw <- extract_field(chunk, "author")
